@@ -1,6 +1,7 @@
 package publicapi
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-openapi/runtime/middleware"
@@ -85,6 +86,10 @@ func (h IndexShipmentsHandler) Handle(params shipmentop.IndexShipmentsParams) mi
 	if err != nil {
 		h.Logger().Error("DB Query", zap.Error(err))
 		return shipmentop.NewIndexShipmentsBadRequest()
+	}
+
+	for _, shipment := range shipments {
+		fmt.Printf("handler shipment delivery: %v", shipment.ActualDeliveryDate)
 	}
 
 	isp := make(apimessages.IndexShipments, len(shipments))

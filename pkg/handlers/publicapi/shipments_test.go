@@ -326,8 +326,13 @@ func (suite *HandlerSuite) TestIndexShipmentsHandlerSortShipmentsPickupAsc() {
 	numShipments := 3
 	numShipmentOfferSplit := []int{3}
 	status := []models.ShipmentStatus{models.ShipmentStatusSUBMITTED}
-	tspUsers, _, _, err := testdatagen.CreateShipmentOfferData(suite.TestDB(), numTspUsers, numShipments, numShipmentOfferSplit, status)
+	tspUsers, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.TestDB(), numTspUsers, numShipments, numShipmentOfferSplit, status)
 	suite.NoError(err)
+
+	for _, shipment := range shipments {
+		shipment.ActualDeliveryDate = nil
+		suite.MustSave(shipment)
+	}
 
 	tspUser := tspUsers[0]
 
@@ -359,6 +364,7 @@ func (suite *HandlerSuite) TestIndexShipmentsHandlerSortShipmentsPickupAsc() {
 	var pickupDate time.Time
 	empty := time.Time{}
 	for _, responsePayload := range okResponse.Payload {
+		fmt.Printf("delivery %v", responsePayload.ActualDeliveryDate)
 		if pickupDate == empty {
 			pickupDate = time.Time(responsePayload.ActualPickupDate)
 		} else {
