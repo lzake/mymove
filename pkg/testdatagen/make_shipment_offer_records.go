@@ -150,7 +150,6 @@ func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments i
 	for i := 1; i <= numShipments; i++ {
 		now := time.Now()
 		nowPlusOne := now.Add(oneWeek)
-		nowPlusTwo := now.Add(oneWeek * 2)
 
 		// Service Member Details
 		smEmail := fmt.Sprintf("leo_spaceman_sm_%d@example.com", i)
@@ -175,7 +174,6 @@ func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments i
 			Shipment: models.Shipment{
 				RequestedPickupDate:     &now,
 				ActualPickupDate:        &nowPlusOne,
-				ActualDeliveryDate:      &nowPlusTwo,
 				TrafficDistributionList: &tdl,
 				SourceGBLOC:             &sourceGBLOC,
 				Market:                  &market,

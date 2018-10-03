@@ -330,7 +330,9 @@ func (suite *HandlerSuite) TestIndexShipmentsHandlerSortShipmentsPickupAsc() {
 	suite.NoError(err)
 
 	for _, shipment := range shipments {
+		fmt.Printf("test actual delivery should be nil: %v", shipment.ActualDeliveryDate)
 		shipment.ActualDeliveryDate = nil
+		fmt.Printf("test actual delivery has now been set to nil and it's gonna be unhappy: %v", shipment.ActualDeliveryDate)
 		suite.MustSave(shipment)
 	}
 
