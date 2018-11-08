@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import { get, capitalize } from 'lodash';
+import { get } from 'lodash';
 import { NavLink, Link } from 'react-router-dom';
 import { reduxForm } from 'redux-form';
 import faPlusCircle from '@fortawesome/fontawesome-free-solid/faPlusCircle';
@@ -28,7 +28,7 @@ import {
 } from 'shared/Entities/modules/tariff400ngItems';
 import {
   getAllShipmentLineItems,
-  selectShipmentLineItems,
+  selectSortedShipmentLineItems,
   getShipmentLineItemsLabel,
 } from 'shared/Entities/modules/shipmentLineItems';
 
@@ -49,7 +49,7 @@ import {
 import TspContainer from 'shared/TspPanel/TspContainer';
 import Weights from 'shared/ShipmentWeights';
 import Dates from 'shared/ShipmentDates';
-import LocationsContainer from './LocationsContainer';
+import LocationsContainer from 'shared/LocationsPanel/LocationsContainer';
 import FormButton from './FormButton';
 import CustomerInfo from './CustomerInfo';
 import PreApprovalPanel from 'shared/PreApprovalRequest/PreApprovalPanel.jsx';
@@ -212,6 +212,24 @@ class ShipmentInfo extends Component {
     const canEnterPreMoveSurvey = approved && hasOriginServiceAgent(serviceAgents) && !hasPreMoveSurvey(shipment);
     const canEnterPackAndPickup = approved && gblGenerated;
 
+    // Some statuses are directly related to the shipment status and some to combo states
+    var statusText = 'Unknown status';
+    if (awarded) {
+      statusText = 'Shipment awarded';
+    } else if (accepted) {
+      statusText = 'Shipment accepted';
+    } else if (approved && !pmSurveyComplete) {
+      statusText = 'Awaiting pre-move survey';
+    } else if (approved && pmSurveyComplete && !gblGenerated) {
+      statusText = 'Pre-move survey complete';
+    } else if (approved && pmSurveyComplete && gblGenerated) {
+      statusText = 'Outbound';
+    } else if (inTransit) {
+      statusText = 'Inbound';
+    } else if (delivered || completed) {
+      statusText = 'Delivered';
+    }
+
     if (this.state.redirectToHome) {
       return <Redirect to="/" />;
     }
@@ -223,11 +241,16 @@ class ShipmentInfo extends Component {
     return (
       <div>
         <div className="usa-grid grid-wide">
-          <div className="usa-width-two-thirds">
-            MOVE INFO &mdash; {move.selected_move_type} CODE {shipment.traffic_distribution_list.code_of_service}
-            <h1>
-              {serviceMember.last_name}, {serviceMember.first_name}
-            </h1>
+          <div className="usa-width-two-thirds page-title">
+            <div className="move-info">
+              <div className="move-info-code">
+                MOVE INFO &mdash; {move.selected_move_type} CODE {shipment.traffic_distribution_list.code_of_service}
+              </div>
+              <div className="service-member-name">
+                {serviceMember.last_name}, {serviceMember.first_name}
+              </div>
+            </div>
+            <div className="shipment-status">Status: {statusText}</div>
           </div>
           <div className="usa-width-one-third nav-controls">
             {awarded && (
@@ -298,10 +321,6 @@ class ShipmentInfo extends Component {
                 )}
                 {serviceMember.text_message_is_preferred && <FontAwesomeIcon className="icon" icon={faComments} />}
                 {serviceMember.email_is_preferred && <FontAwesomeIcon className="icon" icon={faEmail} />}
-                &nbsp;
-              </li>
-              <li>
-                Status: <b>{capitalize(this.props.shipment.status)}</b>
                 &nbsp;
               </li>
             </ul>
@@ -385,6 +404,7 @@ class ShipmentInfo extends Component {
                 <div className="office-tab">
                   <Dates title="Dates" shipment={this.props.shipment} update={this.props.patchShipment} />
                   <Weights title="Weights & Items" shipment={this.props.shipment} update={this.props.patchShipment} />
+                  <LocationsContainer update={this.props.patchShipment} />
                   <PreApprovalPanel shipmentId={this.props.match.params.shipmentId} />
                   <TspContainer
                     ref={this.assignTspServiceAgent}
@@ -394,7 +414,6 @@ class ShipmentInfo extends Component {
                     shipment={this.props.shipment}
                     serviceAgents={this.props.serviceAgents}
                   />
-                  <LocationsContainer update={this.props.patchShipment} />
                 </div>
               )}
             </div>
@@ -447,7 +466,7 @@ const mapStateToProps = state => {
     shipmentDocuments,
     gblGenerated,
     tariff400ngItems: selectTariff400ngItems(state),
-    shipmentLineItems: selectShipmentLineItems(state),
+    shipmentLineItems: selectSortedShipmentLineItems(state),
     serviceAgents: get(state, 'tsp.serviceAgents', []),
     tsp: get(state, 'tsp'),
     loadTspDependenciesHasSuccess: get(state, 'tsp.loadTspDependenciesHasSuccess'),
