@@ -19,6 +19,9 @@ import { Link } from 'react-router-dom';
 import { withContext } from 'shared/AppContext';
 import StatusTimelineContainer from './StatusTimeline';
 
+import FontAwesomeIcon from '@fortawesome/react-fontawesome';
+import faPlus from '@fortawesome/fontawesome-free-solid/faPlus';
+
 export const CanceledMoveSummary = props => {
   const { profile, reviewProfile } = props;
   const currentStation = get(profile, 'current_station');
@@ -442,7 +445,7 @@ const getStatus = (moveStatus, moveType, ppm, shipment) => {
   return status;
 };
 
-export const MoveSummary = props => {
+export const MoveSummaryWithoutContext = props => {
   const {
     profile,
     move,
@@ -459,6 +462,10 @@ export const MoveSummary = props => {
   const status = getStatus(moveStatus, move.selected_move_type, ppm, shipment);
   const StatusComponent =
     move.selected_move_type === 'PPM' ? ppmSummaryStatusComponents[status] : hhgSummaryStatusComponents[status]; // eslint-disable-line security/detect-object-injection
+  const hhgAndPpmEnabled = props.context.flags.hhgAndPpm;
+  const showAddShipmentLink =
+    move.selected_move_type === 'HHG' &&
+    ['SUBMITTED', 'ACCEPTED', 'APPROVED', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED'].includes(move.status);
   const showTsp =
     move.selected_move_type !== 'PPM' &&
     ['ACCEPTED', 'APPROVED', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED'].includes(status);
@@ -486,14 +493,25 @@ export const MoveSummary = props => {
         />
 
         <div className="sidebar usa-width-one-fourth">
-          <button
-            className="usa-button-secondary"
-            onClick={() => editMove(move)}
-            disabled={includes(['DRAFT', 'CANCELED'], status)}
-          >
-            Edit Move
-          </button>
-
+          <div>
+            <button
+              className="usa-button-secondary"
+              onClick={() => editMove(move)}
+              disabled={includes(['DRAFT', 'CANCELED'], status)}
+            >
+              Edit Move
+            </button>
+          </div>
+          <div>
+            {/* ToDo: Replace this url */}
+            {showAddShipmentLink &&
+              hhgAndPpmEnabled && (
+                <a href="">
+                  <FontAwesomeIcon icon={faPlus} />
+                  <span> Add PPM Shipment</span>
+                </a>
+              )}
+          </div>
           <div className="contact_block">
             <div className="title">Contacts</div>
             <TransportationOfficeContactInfo dutyStation={profile.current_station} isOrigin={true} />
@@ -510,3 +528,5 @@ export const MoveSummary = props => {
     </Fragment>
   );
 };
+
+export const MoveSummary = props => withContext(<MoveSummaryWithoutContext {...props} />);
