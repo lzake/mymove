@@ -1,7 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import {
-  MoveSummary,
+  MoveSummaryWithoutContext,
   CanceledMoveSummary,
   ApprovedMoveSummary,
   DraftMoveSummary,
@@ -17,6 +17,7 @@ describe('MoveSummary', () => {
   const entitlementObj = { sum: '10000' };
   const serviceMember = { current_station: { name: 'Ft Carson' } };
   const ordersObj = {};
+  const context = { flags: {} };
   const getShallowRender = (
     entitlementObj,
     serviceMember,
@@ -28,7 +29,7 @@ describe('MoveSummary', () => {
     resumeMoveFn,
   ) => {
     return shallow(
-      <MoveSummary
+      <MoveSummaryWithoutContext
         entitlement={entitlementObj}
         profile={serviceMember}
         orders={ordersObj}
@@ -37,6 +38,7 @@ describe('MoveSummary', () => {
         shipment={hhgObj}
         editMove={editMoveFn}
         resumeMove={resumeMoveFn}
+        context={context}
       />,
     );
   };
