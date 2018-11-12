@@ -19,7 +19,7 @@ An example of instrumenting SubmitMoveHandler, would be to to call `beeline.Star
 ```golang
 func (h SubmitMoveHandler) Handle(params moveop.SubmitMoveForApprovalParams) middleware.Responder {
     ctx := params.HTTPRequest.Context()
-    ctx, span := beeline.StartSpan(ctx, "SubmitMoveHandler")
+    ctx, span := beeline.StartSpan(ctx, reflect.TypeOf(h).Name())
     defer span.Send()
 ```
 
